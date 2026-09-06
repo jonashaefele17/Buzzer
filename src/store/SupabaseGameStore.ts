@@ -66,6 +66,18 @@ class SupabaseGameStore implements GameStore {
         },
       )
       .subscribe()
+
+    // Mobile OSes suspend websockets while a tab is backgrounded/locked, so a
+    // realtime update can be missed; force a fresh fetch whenever the device
+    // wakes back up or regains network, instead of trusting only the next event.
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') void this.loadInitial()
+      })
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => void this.loadInitial())
+    }
   }
 
   private async loadInitial() {

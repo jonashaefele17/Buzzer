@@ -16,10 +16,18 @@ export function TeamView({ data, teamId }: TeamViewProps) {
     return <FinalScoreboard config={config} state={state} />
   }
 
-  if (state.status === 'not_started' || !team) {
+  if (state.status === 'not_started') {
     return (
       <div className="team-view">
         <p className="status-text">Warte auf Spielstart</p>
+      </div>
+    )
+  }
+
+  if (!team) {
+    return (
+      <div className="team-view">
+        <p className="status-text">Unbekanntes Team – bitte den QR-Code erneut scannen</p>
       </div>
     )
   }
