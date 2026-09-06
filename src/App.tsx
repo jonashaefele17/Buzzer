@@ -1,5 +1,6 @@
 import { useGameData } from './hooks/useGameData'
 import { HostView } from './components/HostView'
+import { HostGate } from './components/HostGate'
 import { TeamView } from './components/TeamView'
 import './App.css'
 
@@ -13,7 +14,11 @@ function App() {
   const { role, teamId } = getRoleFromUrl()
 
   if (role === 'host') {
-    return <HostView data={data} />
+    return (
+      <HostGate>
+        <HostView data={data} />
+      </HostGate>
+    )
   }
 
   if (role === 'team' && teamId) {

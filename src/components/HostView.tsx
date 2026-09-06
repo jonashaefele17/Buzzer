@@ -1,4 +1,6 @@
 import { gameStore } from '../store'
+import { isSupabaseConfigured } from '../lib/supabaseClient'
+import { signOutHost } from '../lib/hostAuth'
 import type { FullGameData } from '../types'
 import { Leaderboard } from './Leaderboard'
 import { FinalScoreboard } from './FinalScoreboard'
@@ -9,16 +11,33 @@ interface HostViewProps {
   data: FullGameData
 }
 
+function LogoutBar() {
+  if (!isSupabaseConfigured) return null
+  return (
+    <div className="logout-bar">
+      <button type="button" className="btn btn-ghost" onClick={() => signOutHost()}>
+        Abmelden
+      </button>
+    </div>
+  )
+}
+
 export function HostView({ data }: HostViewProps) {
   const { config, state, question } = data
 
   if (state.status === 'not_started') {
-    return <HostSetupForm initialConfig={config} />
+    return (
+      <>
+        <LogoutBar />
+        <HostSetupForm initialConfig={config} />
+      </>
+    )
   }
 
   if (state.status === 'ended') {
     return (
       <div className="final-scoreboard-wrapper">
+        <LogoutBar />
         <FinalScoreboard config={config} state={state} />
         <button type="button" className="start-game-button" onClick={() => gameStore.resetGame()}>
           Neues Spiel konfigurieren
@@ -32,6 +51,7 @@ export function HostView({ data }: HostViewProps) {
 
   return (
     <div className="host-view">
+      <LogoutBar />
       <div className="host-column">
         <section className="host-card">
           <h2>Rangliste</h2>

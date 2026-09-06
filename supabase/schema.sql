@@ -20,25 +20,46 @@ create table if not exists public.game (
 insert into public.game (id) values (1)
 on conflict (id) do nothing;
 
--- Row Level Security: this app has no login (see spec, "kein Login-/Passwortschutz"),
--- so the public "publishable" key (formerly called "anon" key) needs read+write
--- access to this single row. The policies below still target Postgres role "anon",
--- which is the role the publishable key authenticates as.
+-- Row Level Security: team devices stay anonymous and may only ever buzz (they
+-- never log in), while every other host action (judge, adjustScore, startGame,
+-- etc.) requires a login. This is enforced with column-level grants: anon can
+-- only ever SET question_status/buzzed_team_id (exactly what buzz() touches),
+-- never scores/config/question_number/excluded_team_ids/status.
 alter table public.game enable row level security;
 
 drop policy if exists "anon can read game" on public.game;
 create policy "anon can read game"
   on public.game for select
-  to anon
+  to anon, authenticated
   using (true);
 
 drop policy if exists "anon can update game" on public.game;
-create policy "anon can update game"
+drop policy if exists "anon can buzz" on public.game;
+revoke update on public.game from anon;
+grant update (question_status, buzzed_team_id) on public.game to anon;
+create policy "anon can buzz"
   on public.game for update
   to anon
   using (true)
   with check (true);
 
+drop policy if exists "authenticated can update game" on public.game;
+create policy "authenticated can update game"
+  on public.game for update
+  to authenticated
+  using (true)
+  with check (true);
+
 -- Enable realtime change notifications for this table so all clients
--- (host + every team device) get live updates.
-alter publication supabase_realtime add table public.game;
+-- (host + every team device) get live updates. Guarded so re-running this
+-- script doesn't fail if the table was already added previously.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'game'
+  ) then
+    alter publication supabase_realtime add table public.game;
+  end if;
+end $$;
+

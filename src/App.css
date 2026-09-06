@@ -320,7 +320,8 @@
 }
 
 .field input[type='text'],
-.field input[type='number'] {
+.field input[type='number'],
+.field input[type='password'] {
   background: var(--code-bg);
   border: 1px solid var(--border);
   color: var(--text-h);
@@ -441,3 +442,17 @@
   padding: 32px;
   text-align: center;
 }
+
+.logout-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 24px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.login-error {
+  color: var(--danger);
+  font-size: 14px;
+}
+
